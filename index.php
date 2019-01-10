@@ -24,9 +24,8 @@ if (isset($_GET['id']))
 
 	if ($result === FALSE) { echo "error";/* Handle error */ }
 
-	$file = $_SESSION["id"];
-	//echo "setbestand wordt opgeslagen..<br>";
-	//flush();
+	//$file = $_SESSION["id"];
+
 	file_put_contents($tmpfile,$result);
 	switch($_GET['type'])
 	{
@@ -72,7 +71,7 @@ if (isset($_GET['id']))
 
 	$list = json_decode($result,true);
 
-	$ent=$list['entries'];
+	$entries =$list['entries'];
 
 	echo "<html>";
 	echo "<body style='font-family:arial'>";
@@ -80,12 +79,9 @@ if (isset($_GET['id']))
 	echo "<p>Selecteer een setfile uit de beamteam dropbox</p>";
 	echo "<table style='background:#dddddd'>";
 	echo "<th>Naam</th><th>groote</th><th>datum</th><th>Converteer</th>";
-	foreach($ent as $f=>$k){
-		if ($k[".tag"]=="file"){
-			#$now = new DateTime;
-			#$ago = new DateTime($k[server_modified]);
-			#$diff = $now->diff($ago);
 
+	foreach($entries as $f=>$k){
+		if ($k[".tag"]=="file"){
 			echo "<tr><td>";
 			echo $k[path_display];
 			echo "</td><td>";
