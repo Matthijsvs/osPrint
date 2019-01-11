@@ -1,6 +1,6 @@
 <?php
 session_start();
-include_once('key.php');
+include('key.php');
 if (isset($_GET['id']))
 {
 	$tmpfile = "/tmp/".substr($_GET['id'],3);
@@ -24,8 +24,9 @@ if (isset($_GET['id']))
 
 	if ($result === FALSE) { echo "error";/* Handle error */ }
 
-	//$file = $_SESSION["id"];
+	$file = $_SESSION["id"];
 
+	//flush();
 	file_put_contents($tmpfile,$result);
 	switch($_GET['type'])
 	{
@@ -71,23 +72,58 @@ if (isset($_GET['id']))
 
 	$list = json_decode($result,true);
 
-	$entries =$list['entries'];
+	$ent=$list['entries'];
 
-	echo "<html>";
-	echo "<body style='font-family:arial'>";
+	echo <<<XML
+<html>
+<head>
+<style>
+body
+{
+font-family:arial;
+}
+table
+{
+border-collapse:collapse;
+}
+tr
+{
+	background:#fff;
+	border-bottom:1px solid grey;
+}
+tr:hover
+{
+	background:#ddd;
+}
+th
+{
+	border-top:1px solid grey;
+	border-bottom:2px solid grey;
+}
+td
+{
+padding:8px;
+}
+</style>
+</head>
+<body>
+XML;
 	echo "<H1>Opensong SetDump</h1>";
 	echo "<p>Selecteer een setfile uit de beamteam dropbox</p>";
-	echo "<table style='background:#dddddd'>";
+	echo "<table>";
 	echo "<th>Naam</th><th>groote</th><th>datum</th><th>Converteer</th>";
-
-	foreach($entries as $f=>$k){
+	foreach($ent as $f=>$k){
 		if ($k[".tag"]=="file"){
+			#$now = new DateTime;
+			#$ago = new DateTime($k[server_modified]);
+			#$diff = $now->diff($ago);
+
 			echo "<tr><td>";
-			echo $k[path_display];
+			echo $k[name];
 			echo "</td><td>";
-			echo $k[size]." bytes";
+			echo get_size($k['size']);
 			echo "</td><td>";
-			echo $k[server_modified];
+			echo get_reltime($k[server_modified]);
 			echo "</td><td>";
 
 			echo "<a href='?type=HTML&id=".$k[id]."&name=".$k[name]."'>HTML</a>&nbsp;";
@@ -98,7 +134,32 @@ if (isset($_GET['id']))
 		}
 
 	}
-	echo "</table>";
+	echo "</table></body></html>";
 
+}
+function get_size($p)
+{
+	$i = 0;
+	while ($p>900)
+	{
+		$p = $p/1024;
+		$i++;
+	}
+	$v = array('B','kB','GB','TB','PD','EB');	
+	return sprintf("%3.1f %s",$p,$v[$i]);
+}
+function get_reltime($t)
+{
+	$d = new DateTime($t);
+	$n = new DateTime('NOW');
+	$diff = $d->diff($n);
+	$v = array("y"=>"years","m"=>"months","d"=>"days","h"=>"hours","i"=>"minutes");
+	$ret='';
+	foreach ($v as $key => $value) {
+		if ($diff->$key > 0)
+			$fmt = '%'.$key.' '.$value.',';
+			$ret = $ret.$diff->format($fmt);
+	}
+	return $ret;
 }
 ?>

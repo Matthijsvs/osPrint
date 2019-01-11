@@ -4,7 +4,7 @@ function get_file($fname)
 	//download songfile from dropbox
 	//add your own access token in key.php
 
-	include_once('key.php');
+	include('key.php');
 	$url = 'https://content.dropboxapi.com/2/files/download';
 	$data = array('path' => $fname);
 	$options = array(
@@ -15,7 +15,6 @@ function get_file($fname)
 
 		)
 	);
-	
 	$context  = stream_context_create($options);
 	$result = file_get_contents($url, false, $context);
 	if ($result === FALSE) { echo "error: ".$fname."<br>";/* Handle error */ }
