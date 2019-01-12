@@ -1,33 +1,10 @@
 <?php
 session_start();
 include('key.php');
-if (isset($_GET['id']))
+if (isset($_GET['name']))
 {
-	$tmpfile = "/tmp/".substr($_GET['id'],3);
-	$_SESSION["rawid"] = $_GET['id'];
-	//$_SESSION["name"] = $_GET['name'];
+	$tmpfile = $_GET['name'];
 
-
-	$url = "https://content.dropboxapi.com/2/files/download";
-	$data = array('path' => $_SESSION['rawid']);
-	$options = array(
-		'http' => array(
-		    'header'  => "Authorization: Bearer ".$API_KEY."\r\n".
-						"Dropbox-API-Arg:".json_encode($data),
-		    'method'  => 'POST'
-
-		)
-	);
-
-	$context  = stream_context_create($options);
-	$result = file_get_contents($url, false, $context);
-
-	if ($result === FALSE) { echo "error";/* Handle error */ }
-
-	$file = $_SESSION["id"];
-
-	//flush();
-	file_put_contents($tmpfile,$result);
 	switch($_GET['type'])
 	{
 
@@ -81,6 +58,8 @@ if (isset($_GET['id']))
 body
 {
 font-family:arial;
+margin:0px;
+background:#ddd;
 }
 table
 {
@@ -104,20 +83,26 @@ td
 {
 padding:8px;
 }
+.col
+{
+	border-left: 1px solid black;
+	border-right: 1px solid black;
+	background: #fff;
+	width:40%;
+	height:100%;
+	margin-left:30%;
+	padding:2em;
+}
 </style>
 </head>
 <body>
 XML;
-	echo "<H1>Opensong SetDump</h1>";
-	echo "<p>Selecteer een setfile uit de beamteam dropbox</p>";
+	echo "<div class='col'><H1>Opensong SetDump</h1>";
+	echo "<p>Please select a setfile and an action to perform.</p>";
 	echo "<table>";
-	echo "<th>Naam</th><th>groote</th><th>datum</th><th>Converteer</th>";
+	echo "<th>Set name</th><th>Size</th><th>Age</th><th>Convert</th>";
 	foreach($ent as $f=>$k){
 		if ($k[".tag"]=="file"){
-			#$now = new DateTime;
-			#$ago = new DateTime($k[server_modified]);
-			#$diff = $now->diff($ago);
-
 			echo "<tr><td>";
 			echo $k[name];
 			echo "</td><td>";
@@ -126,15 +111,15 @@ XML;
 			echo get_reltime($k[server_modified]);
 			echo "</td><td>";
 
-			echo "<a href='?type=HTML&id=".$k[id]."&name=".$k[name]."'>HTML</a>&nbsp;";
-			echo "<a href='?type=JSON&id=".$k[id]."&name=".$k[name]."'>JSON</a>&nbsp;";
-			echo "<a href='?type=PPT&id=".$k[id]."&name=".$k[name]."'>PPT</a>&nbsp;";
-			echo "<a href='?type=PDF&id=".$k[id]."&name=".$k[name]."'>PDF</a>&nbsp;";
+			echo "<a href='?type=HTML&name=".urlencode($k[name])."'>HTML</a>&nbsp;";
+			echo "<a href='?type=JSON&name=".urlencode($k[name])."'>JSON</a>&nbsp;";
+			echo "<a href='?type=PPT&name=".urlencode($k[name])."'>PPT</a>&nbsp;";
+			echo "<a href='?type=PDF&name=".urlencode($k[name])."'>PDF</a>&nbsp;";
 			echo "</td></tr>";
 		}
 
 	}
-	echo "</table></body></html>";
+	echo "</table></div></body></html>";
 
 }
 function get_size($p)
@@ -145,20 +130,35 @@ function get_size($p)
 		$p = $p/1024;
 		$i++;
 	}
-	$v = array('B','kB','GB','TB','PD','EB');	
+	$v = array('B','kB','MB','GB','TB','PB','EB');
 	return sprintf("%3.1f %s",$p,$v[$i]);
 }
 function get_reltime($t)
 {
+	//print relative time duration in 2 units.
 	$d = new DateTime($t);
 	$n = new DateTime('NOW');
 	$diff = $d->diff($n);
-	$v = array("y"=>"years","m"=>"months","d"=>"days","h"=>"hours","i"=>"minutes");
+	$v = array("y"=>"year","m"=>"month","d"=>"day","h"=>"hour","i"=>"minute","s"=>"second");
+	$vs = array("y"=>"years","m"=>"months","d"=>"days","h"=>"hours","i"=>"minutes","s"=>"seconds");
 	$ret='';
+	$i=0;
 	foreach ($v as $key => $value) {
 		if ($diff->$key > 0)
-			$fmt = '%'.$key.' '.$value.',';
+		{
+			if ($diff->$key == 1){
+				$fmt = '%'.$key.' '.$value;	//singular
+			}else{
+				$fmt = '%'.$key.' '.$vs[$key];	//plural
+			}	
 			$ret = $ret.$diff->format($fmt);
+			$i++;
+			if ($i>=2)
+			{
+				break;
+			}
+			$ret=$ret.', ';
+		}
 	}
 	return $ret;
 }

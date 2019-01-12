@@ -12,7 +12,6 @@ use PhpOffice\PhpPresentation\Style\Alignment;
 
 
 // Create a shape (drawing)
-$setfile = "beamer/Sets/2018-10-14 - 0930";
 $basefile = "base.odp";
 $outfile = __DIR__ ."/sample.odp";
 

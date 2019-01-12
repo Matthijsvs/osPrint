@@ -3,7 +3,6 @@ function get_file($fname)
 {
 	//download songfile from dropbox
 	//add your own access token in key.php
-
 	include('key.php');
 	$url = 'https://content.dropboxapi.com/2/files/download';
 	$data = array('path' => $fname);
@@ -19,12 +18,11 @@ function get_file($fname)
 	$result = file_get_contents($url, false, $context);
 	if ($result === FALSE) { echo "error: ".$fname."<br>";/* Handle error */ }
 	return $result;
-
 }
 
 function dump_set($fname){
 	$set = array();
-	$setfile = simplexml_load_file($fname);
+	$setfile = simplexml_load_string(get_file("/Beamer (1)/Sets/$fname"));
 	if ($setfile){
 		foreach ($setfile->slide_groups->slide_group as $grp) {
 			switch ((string) $grp['type']){
@@ -63,7 +61,6 @@ function dump_set($fname){
 function parse_song($file,$path,$verses) {
 	// select only verses from setfile
 	$ret = array();
-	//print "beamer/Songs/$path$file</br>";
 	$verse = get_verses("/Beamer (1)/Songs/$path$file");
 	if ($verses == ""){
 		//opensong uses the order from the songfile.
@@ -83,7 +80,6 @@ function parse_song($file,$path,$verses) {
 function get_verses($fname){
 	//return an associative array with all verses in songfile
 	$verses=array();
-	//$songfile=simplexml_load_file($fname);
 	$songfile=simplexml_load_string(get_file($fname));
 	if ($songfile)
 	{

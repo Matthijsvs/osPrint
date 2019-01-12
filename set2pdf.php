@@ -5,7 +5,7 @@
 
 require_once('functions.php');
 require_once 'vendor/autoload.php';
-$HEADER = "CHURCH_NAME";
+
 
 $set = dump_set($tmpfile);
 define('K_PATH_IMAGES', getcwd());
@@ -15,11 +15,13 @@ $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8',
 $pdf->SetCreator(PDF_CREATOR);
 $pdf->SetAuthor("set2pdf");
 
-$pdf->SetHeaderData("/logo.png", 25, $HEADER,  $set['title'], array(0,64,255), array(0,64,128));
+$pdf->SetHeaderData("/logo.png", 25, "Liturgie Elimkerk Ridderkerk",  $set['title'], array(0,64,255), array(0,64,128));
 $pdf->setFooterData(array(0,64,0), array(0,64,128));
 // set header and footer fonts
 $pdf->setHeaderFont(Array(PDF_FONT_NAME_MAIN, '', PDF_FONT_SIZE_MAIN));
 $pdf->setFooterFont(Array(PDF_FONT_NAME_DATA, '', PDF_FONT_SIZE_DATA));
+// set default monospaced font
+//$pdf->SetDefaultMonospacedFont(PDF_FONT_MONOSPACED);
 // set margins
 $pdf->SetMargins(PDF_MARGIN_LEFT, PDF_MARGIN_TOP, PDF_MARGIN_RIGHT);
 $pdf->SetHeaderMargin(PDF_MARGIN_HEADER);
@@ -40,11 +42,11 @@ $pdf->AddPage();
 
 foreach ($set['slides'] as $s){
 	$pdf->SetFont('','B',14);
-	$pdf->Write(0, $s['title'], '', 0, 'L', true, 0, false, false, 0); #left justify
+	$pdf->Write(0, $s['title'], '', 0, 'L', true, 0, false, false, 0);
 	foreach ($s['contents'] as $key=>$c){
 		if ($s['type']=="song")	{
 			$pdf->SetFont('','B',13);
-			$pdf->Write(0, $key, '', 0, 'C', true, 0, false, false, 0);	#Center
+			$pdf->Write(0, $key, '', 0, 'C', true, 0, false, false, 0);
 		}
 		$pdf->SetFont('','',12);
 		$pdf->Write(0, $c, '', 0, 'L', true, 0, false, false, 0);
@@ -52,7 +54,7 @@ foreach ($set['slides'] as $s){
 }
 
 ob_end_clean();
-$pdf->Output($set['title'].'.pdf', 'I');
+$pdf->Output('liturgie.pdf', 'I');
 
 
 ?>
