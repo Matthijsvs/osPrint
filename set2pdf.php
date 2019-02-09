@@ -13,7 +13,7 @@ define('K_PATH_IMAGES', getcwd());
 $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
 // set document information
 $pdf->SetCreator(PDF_CREATOR);
-$pdf->SetAuthor("set2pdf");
+$pdf->SetAuthor("osPrint");
 
 $pdf->SetHeaderData("/logo.png", 25, "Liturgie Elimkerk Ridderkerk",  $set['title'], array(0,64,255), array(0,64,128));
 $pdf->setFooterData(array(0,64,0), array(0,64,128));
