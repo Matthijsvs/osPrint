@@ -1,10 +1,7 @@
 <?php
 
-#error_reporting(-1);
-#ini_set('display_errors', 'On');
-
 require_once('functions.php');
-require_once 'vendor/autoload.php';
+
 
 
 $set = dump_set($tmpfile);

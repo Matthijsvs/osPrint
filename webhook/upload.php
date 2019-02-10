@@ -9,7 +9,7 @@ function upload_from_web($fname){
 	// use key 'http' even if you send the request to https://...
 	$options = array(
 		'http' => array(
-		    'header'  => "Authorization: Bearer ".$$configs->API_KEY."\r\n".
+		    'header'  => "Authorization: Bearer ".$configs->API_KEY."\r\n".
 						 "Content-Type: application/json\r\n",
 		    'method'  => 'POST',
 		    'content' => json_encode($data)

@@ -11,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 	{
 
 		$url = 'https://api.dropboxapi.com/2/files/list_folder';
-		$data = array('path' => '/Beamer (1)/sets/',
+		$data = array('path' => $configs->setpath,
 					"recursive" => False,
 					"include_media_info" => False,
 					"include_deleted" => False,
@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 		// use key 'http' even if you send the request to https://...
 		$options = array(
 			'http' => array(
-			    'header'  => "Authorization: Bearer ".$API_KEY."\r\n".
+			    'header'  => "Authorization: Bearer ".$configs->API_KEY."\r\n".
 							 "Content-Type: application/json\r\n",
 			    'method'  => 'POST',
 			    'content' => json_encode($data)

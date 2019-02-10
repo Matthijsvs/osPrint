@@ -1,6 +1,10 @@
 <?php
-session_start();
-include('key.php');
+ini_set('display_startup_errors', 1);
+ini_set('display_errors', 1);
+error_reporting(-1);
+require_once('vendor/autoload.php');
+$configs = include('key.php');
+
 if (isset($_GET['name']))
 {
 	$tmpfile = $_GET['name'];
@@ -26,7 +30,7 @@ if (isset($_GET['name']))
 	}
 }else{
 	$url = 'https://api.dropboxapi.com/2/files/list_folder';
-	$data = array('path' => '/Beamer (1)/sets/',
+	$data = array('path' => $configs->setpath,
 				"recursive" => False,
 				"include_media_info" => False,
 				"include_deleted" => False,
@@ -35,7 +39,7 @@ if (isset($_GET['name']))
 	// use key 'http' even if you send the request to https://...
 	$options = array(
 		'http' => array(
-		    'header'  => "Authorization: Bearer ".$API_KEY."\r\n".
+		    'header'  => "Authorization: Bearer ".$configs->API_KEY."\r\n".
 						 "Content-Type: application/json\r\n",
 		    'method'  => 'POST',
 		    'content' => json_encode($data)
@@ -104,17 +108,17 @@ XML;
 	foreach($ent as $f=>$k){
 		if ($k[".tag"]=="file"){
 			echo "<tr><td>";
-			echo $k[name];
+			echo $k['name'];
 			echo "</td><td>";
 			echo get_size($k['size']);
 			echo "</td><td>";
-			echo get_reltime($k[server_modified]);
+			echo get_reltime($k['server_modified']);
 			echo "</td><td>";
 
-			echo "<a href='?type=HTML&name=".urlencode($k[name])."'>HTML</a>&nbsp;";
-			echo "<a href='?type=JSON&name=".urlencode($k[name])."'>JSON</a>&nbsp;";
-			echo "<a href='?type=PPT&name=".urlencode($k[name])."'>PPT</a>&nbsp;";
-			echo "<a href='?type=PDF&name=".urlencode($k[name])."'>PDF</a>&nbsp;";
+			echo "<a href='?type=HTML&name=".urlencode($k['name'])."'>HTML</a>&nbsp;";
+			echo "<a href='?type=JSON&name=".urlencode($k['name'])."'>JSON</a>&nbsp;";
+			echo "<a href='?type=PPT&name=".urlencode($k['name'])."'>PPT</a>&nbsp;";
+			echo "<a href='?type=PDF&name=".urlencode($k['name'])."'>PDF</a>&nbsp;";
 			echo "</td></tr>";
 		}
 

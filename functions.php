@@ -2,13 +2,12 @@
 function get_file($fname)
 {
 	//download songfile from dropbox
-	//add your own access token in key.php
-	include('key.php');
+	$configs = include('key.php');
 	$url = 'https://content.dropboxapi.com/2/files/download';
 	$data = array('path' => $fname);
 	$options = array(
 		'http' => array(
-		    'header'  => "Authorization: Bearer ".$API_KEY."\r\n".
+		    'header'  => "Authorization: Bearer ".$configs->API_KEY."\r\n".
 						"Dropbox-API-Arg:".json_encode($data),
 		    'method'  => 'POST'
 
@@ -21,8 +20,12 @@ function get_file($fname)
 }
 
 function dump_set($fname){
+
+	//add your own access token in key.php
+	$configs = include('key.php');
+
 	$set = array();
-	$setfile = simplexml_load_string(get_file("/Beamer (1)/Sets/$fname"));
+	$setfile = simplexml_load_string(get_file($configs->setpath.$fname));
 	if ($setfile){
 		foreach ($setfile->slide_groups->slide_group as $grp) {
 			switch ((string) $grp['type']){
@@ -35,7 +38,7 @@ function dump_set($fname){
 				foreach ($songs as $k=>$s){
 					$song[$k]=$s;
 				}
-				$set[] = array ( title => $file, type => "song", contents => $song);
+				$set[] = array ( 'title' => $file, 'type' => "song", 'contents' => $song);
 			break;
 
 			// for now we we treat scripture and text slides the same
@@ -49,12 +52,12 @@ function dump_set($fname){
 					$body[] = (string)$txt->body;
 					$i++;
 				}
-				$set[] = array ( title => $title, type => "scripture", contents => $body);
+				$set[] = array ( 'title' => $title, 'type' => "scripture", 'contents' => $body);
 			break;
 			}
 		}
 	}
-	return array(title=>(String)$setfile['name'],slides => $set);
+	return array('title'=>(String)$setfile['name'],'slides' => $set);
 }
 
 
