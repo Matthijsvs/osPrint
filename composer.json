@@ -1,9 +1,9 @@
 {
     "require": {
        "phpoffice/phppresentation": "dev-master",
-        "tecnickcom/tcpdf": "dev-master",
-	"cache/filesystem-adapter":"dev-master",
-        "spatie/flysystem-dropbox": "^1.0"
+        "tecnickcom/tcpdf": "dev-master",       
+        "phpfastcache/phpfastcache": "^7.0",
+        "spatie/dropbox-api": "^1.7"
     }
 
 }

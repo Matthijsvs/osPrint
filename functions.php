@@ -1,29 +1,31 @@
 <?php
+
+
 function get_file($fname)
 {
-	//download songfile from dropbox
-	$configs = include('key.php');
-	$url = 'https://content.dropboxapi.com/2/files/download';
-	$data = array('path' => $fname);
-	$options = array(
-		'http' => array(
-		    'header'  => "Authorization: Bearer ".$configs->API_KEY."\r\n".
-						"Dropbox-API-Arg:".json_encode($data),
-		    'method'  => 'POST'
+	global $InstanceCache;
+	global $client;
+	global $configs;
 
-		)
-	);
-	$context  = stream_context_create($options);
-	$result = file_get_contents($url, false, $context);
-	if ($result === FALSE) { echo "error: ".$fname."<br>";/* Handle error */ }
-	return $result;
+	$key = sha1($fname);
+
+	$CachedString = $InstanceCache->getItem($key);
+
+	if (is_null($CachedString->get())) {
+		//download songfile from dropbox
+		$result=stream_get_contents($client->download($fname));
+		$CachedString->set($result)->expiresAfter(3600);
+		$InstanceCache->save($CachedString);
+		return $result;
+	}else{
+		//this file has been downloaded before.
+		return $CachedString->get();
+	}
 }
 
 function dump_set($fname){
-
 	//add your own access token in key.php
-	$configs = include('key.php');
-
+	global $configs;
 	$set = array();
 	$setfile = simplexml_load_string(get_file($configs->setpath.$fname));
 	if ($setfile){

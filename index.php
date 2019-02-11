@@ -3,7 +3,24 @@ ini_set('display_startup_errors', 1);
 ini_set('display_errors', 1);
 error_reporting(-1);
 require_once('vendor/autoload.php');
-$configs = include('key.php');
+
+use Phpfastcache\CacheManager;
+use Phpfastcache\Config\Config;
+use Phpfastcache\Core\phpFastCache;
+
+
+// Setup File Path on your config files
+CacheManager::setDefaultConfig(new Config([
+  "path" => sys_get_temp_dir(),
+  "itemDetailedDate" => false
+]));
+
+// we cache the downloaded songs into files on our filesystem.
+$InstanceCache = CacheManager::getInstance('files');
+
+
+$configs = include('config.php');
+$client = new Spatie\Dropbox\Client($configs->API_KEY);
 
 if (isset($_GET['name']))
 {
@@ -29,31 +46,8 @@ if (isset($_GET['name']))
 		break;
 	}
 }else{
-	$url = 'https://api.dropboxapi.com/2/files/list_folder';
-	$data = array('path' => $configs->setpath,
-				"recursive" => False,
-				"include_media_info" => False,
-				"include_deleted" => False,
-		"include_has_explicit_shared_members" => False);
-
-	// use key 'http' even if you send the request to https://...
-	$options = array(
-		'http' => array(
-		    'header'  => "Authorization: Bearer ".$configs->API_KEY."\r\n".
-						 "Content-Type: application/json\r\n",
-		    'method'  => 'POST',
-		    'content' => json_encode($data)
-		)
-	);
-
-	$context  = stream_context_create($options);
-	$result = file_get_contents($url, false, $context);
-	if ($result === FALSE) { echo "error";/* Handle error */ }
-
-
-	$list = json_decode($result,true);
-
-	$ent=$list['entries'];
+	$result = $client->listFolder($configs->setpath);
+	$ent=$result['entries'];
 
 	echo <<<XML
 <html>
@@ -92,16 +86,16 @@ padding:8px;
 	border-left: 1px solid black;
 	border-right: 1px solid black;
 	background: #fff;
-	width:40%;
+	width:60%;
 	height:100%;
-	margin-left:30%;
+	margin-left:20%;
 	padding:2em;
 }
 </style>
 </head>
 <body>
 XML;
-	echo "<div class='col'><H1>Opensong SetDump</h1>";
+	echo "<div class='col'><H1>Opensong SetDump for ".$configs->church."</h1>";
 	echo "<p>Please select a setfile and an action to perform.</p>";
 	echo "<table>";
 	echo "<th>Set name</th><th>Size</th><th>Age</th><th>Convert</th>";
@@ -126,6 +120,8 @@ XML;
 	echo "</table></div></body></html>";
 
 }
+
+//print filesize in closest unit.
 function get_size($p)
 {
 	$i = 0;
@@ -137,9 +133,12 @@ function get_size($p)
 	$v = array('B','kB','MB','GB','TB','PB','EB');
 	return sprintf("%3.1f %s",$p,$v[$i]);
 }
+
+//print relative time duration in 2 units.
+//accepts string containing ISO 8601 timestamp
 function get_reltime($t)
 {
-	//print relative time duration in 2 units.
+
 	$d = new DateTime($t);
 	$n = new DateTime('NOW');
 	$diff = $d->diff($n);
