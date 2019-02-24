@@ -12,7 +12,6 @@ use Phpfastcache\Core\phpFastCache;
 // Setup File Path on your config files
 CacheManager::setDefaultConfig(new Config([
   "path" => sys_get_temp_dir(),
-  "itemDetailedDate" => false
 ]));
 
 // we cache the downloaded songs into files on our filesystem.

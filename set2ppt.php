@@ -10,27 +10,31 @@ use PhpOffice\PhpPresentation\Style\Color;
 use PhpOffice\PhpPresentation\Slide\AbstractBackground;
 use PhpOffice\PhpPresentation\Style\Alignment;
 
-
+global $configs;
 // Create a shape (drawing)
 $basefile = "base.odp";
 $outfile = __DIR__ ."/sample.odp";
 
+
+
 $set = dump_set($tmpfile);
+header('Content-type: application/vnd.oasis.opendocument.presentation');
+header('Content-Disposition: attachment; filename="'.$set['title'].'.odp"');
 
 #this will change the current working directory, so we have to process the set before this.
-#$pptReader = IOFactory::createReader('ODPresentation');
-$oPHPPresentation = new PhpPresentation(); #$pptReader->load($basefile);
+$oPHPPresentation = new PhpPresentation(); 
 
-$oPHPPresentation->getDocumentProperties()->setCreator('PHPOffice')
-    ->setLastModifiedBy('Set2PPT')
+$oPHPPresentation->getDocumentProperties()->setCreator('osPrint')
+    ->setLastModifiedBy($configs->church)
     ->setTitle($set['title']);
 
 $currentSlide = $oPHPPresentation->getActiveSlide();
-$shape = $oSlide->createRichTextShape()
+$shape = $currentSlide->createRichTextShape()
 	->setHeight(25)
 	->setWidth(940)
 	->setOffsetX(10)
 	->setOffsetY(10);
+
 $shape->getActiveParagraph()->getAlignment()->setHorizontal( Alignment::HORIZONTAL_CENTER );
 $textRun = $shape->createTextRun($set['title']);
 
@@ -64,10 +68,10 @@ foreach ($set['slides'] as $s){
 }
 
 $oWriterODP = IOFactory::createWriter($oPHPPresentation, 'ODPresentation');
-$oWriterODP->save($outfile);
-#ob_end_clean();
+#$oWriterODP->save($outfile);
+ob_end_clean();
 #header("Content-Type: application/vnd.openxmlformats-officedocument.presentationml.presentation");
 #header("Content-Disposition: attachment; filename=Presentation.pptx");
 
-#$oWriterODP->save('php://output');
+$oWriterODP->save('php://output');
 ?>

@@ -1,7 +1,7 @@
 <?php
 
 require_once('functions.php');
-
+global $configs;
 
 
 $set = dump_set($tmpfile);
@@ -10,21 +10,22 @@ define('K_PATH_IMAGES', getcwd());
 $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
 // set document information
 $pdf->SetCreator(PDF_CREATOR);
-$pdf->SetAuthor("osPrint");
+$pdf->SetAuthor($configs->church);
 
-$pdf->SetHeaderData("/logo.png", 25, "Liturgie Elimkerk Ridderkerk",  $set['title'], array(0,64,255), array(0,64,128));
+$pdf->SetHeaderData("/logo.png", 25, $configs->church,  $set['title'], array(0,64,255), array(0,64,128));
 $pdf->setFooterData(array(0,64,0), array(0,64,128));
 // set header and footer fonts
 $pdf->setHeaderFont(Array(PDF_FONT_NAME_MAIN, '', PDF_FONT_SIZE_MAIN));
 $pdf->setFooterFont(Array(PDF_FONT_NAME_DATA, '', PDF_FONT_SIZE_DATA));
-// set default monospaced font
-//$pdf->SetDefaultMonospacedFont(PDF_FONT_MONOSPACED);
+
 // set margins
 $pdf->SetMargins(PDF_MARGIN_LEFT, PDF_MARGIN_TOP, PDF_MARGIN_RIGHT);
 $pdf->SetHeaderMargin(PDF_MARGIN_HEADER);
 $pdf->SetFooterMargin(PDF_MARGIN_FOOTER);
+
 // set auto page breaks
 $pdf->SetAutoPageBreak(TRUE, PDF_MARGIN_BOTTOM);
+
 // set image scale factor
 $pdf->setImageScale(PDF_IMAGE_SCALE_RATIO);
 // ---------------------------------------------------------
@@ -32,10 +33,10 @@ $pdf->setImageScale(PDF_IMAGE_SCALE_RATIO);
 $pdf->setFontSubsetting(true);
 // Set font
 $pdf->SetFont('dejavusans', '', 14, '', true);
+
 // Add a page
 // This method has several options, check the source code documentation for more information.
 $pdf->AddPage();
-// print a block of text using Write()
 
 foreach ($set['slides'] as $s){
 	$pdf->SetFont('','B',14);
@@ -51,7 +52,7 @@ foreach ($set['slides'] as $s){
 }
 
 ob_end_clean();
-$pdf->Output('liturgie.pdf', 'I');
+$pdf->Output($set['title'].'.pdf', 'I');
 
 
 ?>

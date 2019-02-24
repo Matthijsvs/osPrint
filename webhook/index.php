@@ -1,69 +1,63 @@
 <?php
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+$debug=0;
+if (isset($_GET['debug']))
+{
+	$debug = True;
+	echo "Debug on\n";
+	ini_set('display_startup_errors', 1);
+	ini_set('display_errors', 1);
+	error_reporting(-1);
+}
+require_once('../vendor/autoload.php');
+use Phpfastcache\CacheManager;
+use Phpfastcache\Config\Config;
+use Phpfastcache\Core\phpFastCache;
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' or $debug) {
+	
 	file_put_contents('/tmp/webhook_log',"File request\n",FILE_APPEND);
-	include('key.php');
+
+	// Setup File Path on your config files
+	CacheManager::setDefaultConfig(new Config([
+	  "path" => sys_get_temp_dir(), 
+	]));
+
+	$InstanceCache = CacheManager::getInstance('files');
+
+	$configs = include('../config.php');
+
+	$client = new Spatie\Dropbox\Client($configs->API_KEY);
+
 	include_once('upload.php');
 	$resp = file_get_contents('php://input');
 	#$list = json_decode($resp,true);			//if we need to support multiple users, keep track of users in response
 
-	$cursor = file_get_contents("/tmp/cursor", false);	//cursor is needed to continue file listing from previous state
-	if ($cursor === False)	//no scan  has been done
-	{
-
-		$url = 'https://api.dropboxapi.com/2/files/list_folder';
-		$data = array('path' => $configs->setpath,
-					"recursive" => False,
-					"include_media_info" => False,
-					"include_deleted" => False,
-			"include_has_explicit_shared_members" => False);
-
-		// use key 'http' even if you send the request to https://...
-		$options = array(
-			'http' => array(
-			    'header'  => "Authorization: Bearer ".$configs->API_KEY."\r\n".
-							 "Content-Type: application/json\r\n",
-			    'method'  => 'POST',
-			    'content' => json_encode($data)
-			)
-		);
-
-		$context  = stream_context_create($options);
-		$result = file_get_contents($url, false, $context);
-		if ($result === FALSE) { echo "error";/* Handle error */ }
-
-		$list = json_decode($result,true);
-		file_put_contents("/tmp/cursor",$list['cursor']);
+	$CachedString = $InstanceCache->getItem('cursor');
+	if (!$CachedString->isHit()) {
+		//this directory has not been listed
+		$result = $client->listFolder($configs->setpath);
+		$CachedString->set($result['cursor'])->expiresAfter(0);
+		$InstanceCache->save($CachedString);
+		$ent=$result['entries'];
 	}else{
+		//there has been an update to this directory
+		$result = $client->listFolderContinue($CachedString->get());
+		$CachedString->set($result['cursor'])->expiresAfter(0);
+		$InstanceCache->save($CachedString);
+		$ent=$result['entries'];
+	}
 
-		$url = 'https://api.dropboxapi.com/2/files/list_folder/continue';
-		$data = array('cursor' => $cursor);
+	$timer=$InstanceCache->getItem("timer")->set(new DateTime())->expiresAfter(0);
+	$InstanceCache->save($timer);
 
-		// use key 'http' even if you send the request to https://...
-		$options = array(
-			'http' => array(
-			    'header'  => "Authorization: Bearer ".$API_KEY."\r\n".
-							 "Content-Type: application/json\r\n",
-			    'method'  => 'POST',
-			    'content' => json_encode($data)
-			)
-		);
-
-		$context  = stream_context_create($options);
-		$result = file_get_contents($url, false, $context);
-		if ($result === FALSE) { echo "error";/* Handle error */ }
-
-		$list = json_decode($result,true);
-		file_put_contents("/tmp/cursor",$list['cursor']);
-
-		$ent=$list['entries']; // changed files
-		foreach($ent as $f=>$k){
-			if ($k[".tag"]=="file"){
-				file_put_contents('/tmp/webhook_log',"json: ".print_r($k,true)."\n",FILE_APPEND);
-				upload_from_web(urlencode($k[name]));
-			}
+	//we loop over all files in the listing and cache them with a Todo tag
+	foreach($ent as $f=>$k){
+		if ($k[".tag"]=="file"){
+			$new=$InstanceCache->getItem(sha1($k['name']))->set($k['name'])->expiresAfter(0)->addTag("todo");
+			$InstanceCache->save($new);
 		}
 	}
-	fclose($log);
+
 }else{
 	//for verification we must support challenge-response
 	if (isset($_GET['challenge']))
